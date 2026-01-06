@@ -1,0 +1,1010 @@
+<!-- =========================
+PART 4（Tab6: 總結/輸出/資源/關鍵知識庫）
+貼入方式（延續你目前「同一份 HTML」）：
+
+A) 把「PART 4 CSS」貼到 <style>...</style> 的結尾（</style> 前）
+B) 把「PART 4 JS」貼到 <script>...</script> 的結尾（</script> 前）
+
+說明：
+- 會新增一個新頁籤 id="wrap"（你若已在 Part1 做了 tab，請在 tabs 陣列加上 wrap；若你 tabs 是動態渲染，本段會自動容錯）
+- 提供：關鍵知識 20 點（氣泡/翻牌）、資源區、輸出下載（JSON/Markdown）、匯入、清除快取、Google Sheet 上傳預留（含程式碼區塊）
+========================= -->
+
+<!-- =========================
+A) PART 4 CSS（貼到 </style> 前）
+========================= -->
+<style>
+  /* ===== PART 4: Wrap / Export / Key Knowledge ===== */
+
+  .wrap-grid{
+    display:grid;
+    grid-template-columns: 1.2fr .8fr;
+    gap: 12px;
+  }
+  @media (max-width: 980px){
+    .wrap-grid{ grid-template-columns: 1fr; }
+  }
+
+  .kb-cloud{
+    position: relative;
+    border-radius: 18px;
+    border: 1px solid rgba(229,231,235,.95);
+    background: rgba(255,255,255,.92);
+    box-shadow: var(--shadow-inset);
+    padding: 12px 12px;
+    overflow:hidden;
+  }
+  .kb-cloud h4{ margin:0; font-size: var(--fz-h2); }
+  .kb-bubbles{
+    margin-top: 12px;
+    display:flex;
+    flex-wrap:wrap;
+    gap: 10px;
+  }
+  .kb-bubble{
+    border-radius: 999px;
+    padding: 10px 12px;
+    border: 1px solid rgba(229,231,235,.95);
+    background: rgba(255,255,255,.94);
+    box-shadow: 6px 6px 14px rgba(17,24,39,.06), -6px -6px 14px rgba(255,255,255,.85);
+    cursor:pointer;
+    user-select:none;
+    font-weight: 900;
+    font-size: var(--fz-sm);
+    max-width: 100%;
+    white-space: nowrap;
+    overflow:hidden;
+    text-overflow: ellipsis;
+  }
+  .kb-bubble:hover{
+    transform: translateY(-1px);
+  }
+
+  .kb-modal{
+    position: fixed;
+    inset: 0;
+    background: rgba(17,24,39,.42);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index: 60;
+    padding: 14px;
+  }
+  .kb-modal.open{ display:flex; }
+  .kb-modal .inner{
+    width:min(980px, 100%);
+    border-radius: 22px;
+    border: 1px solid rgba(229,231,235,.95);
+    background: rgba(255,255,255,.96);
+    box-shadow: 0 30px 80px rgba(17,24,39,.30);
+    padding: 14px 14px;
+  }
+  .kb-modal .top{
+    display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    margin-bottom: 10px;
+  }
+  .kb-modal .top b{ font-weight:950; font-size: var(--fz-h2); }
+  .kb-modal .nav{
+    display:flex; gap:10px; flex-wrap:wrap;
+  }
+
+  .flip{
+    perspective: 1000px;
+  }
+  .flip-card{
+    position: relative;
+    width: 100%;
+    min-height: 260px;
+    border-radius: 18px;
+    border: 1px solid rgba(229,231,235,.95);
+    background: rgba(255,255,255,.92);
+    box-shadow: 6px 6px 14px rgba(17,24,39,.06), -6px -6px 14px rgba(255,255,255,.85);
+    transform-style: preserve-3d;
+    transition: transform .35s ease;
+    overflow:hidden;
+  }
+  .flip-card.is-flipped{
+    transform: rotateY(180deg);
+  }
+  .flip-face{
+    position:absolute;
+    inset:0;
+    backface-visibility: hidden;
+    padding: 14px 14px;
+    display:flex;
+    flex-direction:column;
+    gap: 10px;
+  }
+  .flip-front .tagrow, .flip-back .tagrow{
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+  }
+  .flip-front .tagrow .pill, .flip-back .tagrow .pill{
+    font-size: var(--fz-xs);
+  }
+  .flip-front .title{
+    font-weight: 950;
+    font-size: clamp(18px, 2.2vw, 22px);
+    line-height:1.25;
+  }
+  .flip-front .hint{
+    font-size: var(--fz-sm);
+    color: var(--muted2);
+    line-height:1.6;
+    white-space: pre-wrap;
+  }
+  .flip-back{
+    transform: rotateY(180deg);
+  }
+  .flip-back .body{
+    font-size: var(--fz-md);
+    line-height: 1.7;
+    white-space: pre-wrap;
+  }
+  .flip-back .body b{ font-weight: 950; }
+
+  .export-card{
+    border-radius: 18px;
+    border: 1px solid rgba(229,231,235,.95);
+    background: rgba(255,255,255,.92);
+    box-shadow: var(--shadow-inset);
+    padding: 12px 12px;
+  }
+  .export-card h4{ margin:0; font-size: var(--fz-h2); }
+  .export-row{
+    margin-top: 10px;
+    display:flex;
+    gap: 10px;
+    flex-wrap:wrap;
+  }
+  .mono{
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: var(--fz-xs);
+    line-height:1.55;
+    white-space: pre-wrap;
+    border-radius: 14px;
+    border: 1px solid rgba(229,231,235,.95);
+    background: rgba(255,255,255,.94);
+    box-shadow: var(--shadow-inset);
+    padding: 10px 10px;
+  }
+
+  .res-grid{
+    margin-top: 10px;
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  @media (max-width: 980px){
+    .res-grid{ grid-template-columns: 1fr; }
+  }
+  .res-item{
+    border-radius: 18px;
+    border: 1px solid rgba(229,231,235,.95);
+    background: rgba(255,255,255,.92);
+    box-shadow: 6px 6px 14px rgba(17,24,39,.06), -6px -6px 14px rgba(255,255,255,.85);
+    padding: 12px 12px;
+  }
+  .res-item b{ font-weight: 950; }
+  .res-item .small-muted{ margin-top:8px; }
+
+  .danger-zone{
+    border-radius: 18px;
+    border: 1px dashed rgba(239,68,68,.35);
+    background: rgba(255,255,255,.92);
+    box-shadow: var(--shadow-inset);
+    padding: 12px 12px;
+  }
+</style>
+
+<!-- =========================
+B) PART 4 JS（貼到 </script> 前）
+========================= -->
+<script>
+  /* =========================
+     PART 4: Wrap tab
+     - Key Knowledge 20 points (bubble + flip)
+     - Resources links
+     - Export / Import / Clear cache
+     - Google Sheet upload placeholder + code snippet
+     ========================= */
+
+  // ---------- Add / ensure new tab in UI (non-destructive) ----------
+  // 如果你的 Part1 使用固定 tabs 陣列，請手動把 {id:"wrap", label:"總結/輸出"} 加進去
+  // 若你的 tabs 是由 DOM 讀取或其他方法，本段只補 renderMain 路由，不強制改 tab 列表
+
+  // ---------- State ensure ----------
+  function ensureWrapState(){
+    if(!state.wrap) state.wrap = {};
+    if(!state.wrap.kbSeen) state.wrap.kbSeen = {}; // keypointId -> true
+  }
+
+  // ---------- Key knowledge: 20 points, <= 200 字/點 ----------
+  const KEYPOINTS = [
+    {id:"k1", tag:"市場規模", title:"TAM/SAM/SOM 是估算，不是答案",
+     body:"TAM 是『理論上所有人都買』的最大盤；SAM 是『你這個方案可服務的盤』；SOM 是『你短期真的搶得到的盤』。先用假設估，再用實驗改。"},
+    {id:"k2", tag:"市場規模", title:"用『上而下』估算時，先確認單位",
+     body:"上而下：人口×滲透率×客單價。最常錯在單位不一致（年/月/次）。每一步都寫清楚『每人每年幾次』，避免假精準。"},
+    {id:"k3", tag:"市場規模", title:"用『下而上』估算時，先選一條可重複的成交路徑",
+     body:"下而上：每個小單位（店/跑團/通路）可成交多少×你能複製多少單位。重點是『你真的能複製』，不是你希望能複製。"},
+    {id:"k4", tag:"市場規模", title:"用『類比法』估算時，先說清楚你像誰、差在哪",
+     body:"類比不是抄數字。要說明：你跟哪個市場/產品相似、差異在哪、差異會讓規模變大或變小。差異沒講清楚就只是硬套。"},
+    {id:"k5", tag:"PMF", title:"PMF 不是一次到位，而是三段 Fit",
+     body:"Value Proposition Fit：有人覺得『有差』；Go-to-Market Fit：你找得到穩定成交方式；Business Model Fit：單位經濟支撐成長。先知道你卡哪段。"},
+    {id:"k6", tag:"PMF", title:"VP Fit 的核心訊號：願意回來、願意推薦、願意付出代價",
+     body:"問卷喜歡不等於採用。VP Fit 更看：回訪、推薦、付費/訂金、以及能否清楚描述『差異』。"},
+    {id:"k7", tag:"PMF", title:"GTM Fit 的核心訊號：成交流程可重複",
+     body:"不是『偶爾成交』，而是『用同一套流程可以重複成交』。包含：接觸→說服→成交→交付→回訪的每一步都能被學會與複製。"},
+    {id:"k8", tag:"PMF", title:"BM Fit 的核心訊號：越賣越輕鬆，不是越賣越累",
+     body:"如果每單都要靠創辦人硬扛、或毛利被成本吃掉，BM Fit 還沒到。BM Fit 要能支撐擴張：毛利、留存、回收期要站得住。"},
+    {id:"k9", tag:"MVP", title:"MVP 不是『最小產品』，是『最小驗證』",
+     body:"你要最小化的是『取得可判讀訊號的成本與時間』，不是功能數量。功能越多越容易把訊號弄髒。"},
+    {id:"k10", tag:"MVP", title:"MVP 的三件事：方法、指標、門檻",
+     body:"沒有門檻就沒有決策。每個實驗都要寫：用什麼方法拿到什麼指標、達到多少算過、多少算停損。"},
+    {id:"k11", tag:"MVP", title:"最常見的失敗：用錯族群做測試",
+     body:"早期最好找『痛感強、願意忍受不完美』的人。用大眾族群測 MVP，常得到模糊結果，最後誤判市場不要。"},
+    {id:"k12", tag:"MVP", title:"實驗要先控制干擾，再談結論",
+     body:"同一個實驗不要一次改太多（族群/定價/通路/產品都改）。先固定三項，只改一項，才知道『是什麼造成差異』。"},
+    {id:"k13", tag:"Pivot", title:"Pivot 的前提：你已經學到可移轉的東西",
+     body:"Pivot 不是重開一局。要先寫下：哪些假設被支持、哪些被打臉、哪些訊號最可信。再把學到的東西轉成新方向。"},
+    {id:"k14", tag:"Pivot", title:"Pivot 要保留關聯性：保留什麼？改了什麼？",
+     body:"一段好 Pivot 會說：我保留『核心價值/技術/痛點』，我改變『客群/通路/定價/情境』。如果只剩新題目，就不是 Pivot。"},
+    {id:"k15", tag:"Pivot", title:"紅黃綠不是情緒，是決策規則",
+     body:"綠：加碼；黃：補證據（改實驗/改族群）；紅：停損或轉向。用訊號分類，避免因為投入太多就硬撐。"},
+    {id:"k16", tag:"陸王", title:"《陸王》給 MVP 的啟示：工藝不是賣點，差異才是",
+     body:"足袋的工藝是手段，不是目的。真正要驗證的是：跑者是否感知到差異、是否願意回來、是否願意付費。"},
+    {id:"k17", tag:"陸王", title:"《陸王》給 GTM 的啟示：先找能產生口碑的場景",
+     body:"資源有限時，先在可聚集目標跑者的場景累積口碑（例如跑團/活動），比一開始鋪大通路更能得到乾淨訊號。"},
+    {id:"k18", tag:"陸王", title:"《陸王》給 BM 的啟示：良率與成本是能不能長久的底座",
+     body:"如果良率拉不起來，就算有人喜歡也會卡住。BM Fit 常被忽略，但它會在擴張時一次爆出來。"},
+    {id:"k19", tag:"課堂", title:"三小時最重要的產出：一份可執行的實驗單＋一個 Pivot 假設",
+     body:"你不需要在課堂把產品想完整。你需要的是：下一週就能做的實驗單（含門檻/停損），以及若不成立要怎麼 Pivot 的新假設。"},
+    {id:"k20", tag:"課堂", title:"避免『買努力』：把工作拆成能被打臉的句子",
+     body:"把『我們要更努力行銷』改成：『在某族群、某通路、用某敘事，轉換率≥X%』。越能被打臉，越能學到東西。"},
+  ];
+
+  // ---------- Progress completion for wrap ----------
+  function computeWrapCompletion(){
+    ensureWrapState();
+    // done if export attempted OR at least 10 keypoints opened OR 1 wrap snapshot note created
+    const seen = state.wrap.kbSeen || {};
+    const seenCount = Object.keys(seen).length;
+
+    const exported = !!state.wrap.exportedOnce;
+    const imported = !!state.wrap.importedOnce;
+
+    const started = seenCount > 0 || exported || imported;
+    const pass = seenCount >= 10; // encourage reading
+    const done = pass && exported;
+    return { seenCount, exported, imported, started, pass, done };
+  }
+
+  // ---------- Extend autoUpdateProgress ----------
+  const _autoUpdateProgress_PART3 = autoUpdateProgress;
+  autoUpdateProgress = function(){
+    _autoUpdateProgress_PART3();
+
+    const w = computeWrapCompletion();
+    if(w.done) setTabStatus("wrap","done");
+    else if(w.started) setTabStatus("wrap","go");
+    else setTabStatus("wrap","todo");
+  };
+
+  // ---------- Extend renderMain routing ----------
+  const _renderMain_PART3 = renderMain;
+  renderMain = function(){
+    const main = $("#main");
+    main.innerHTML = "";
+
+    if(state.ui.activeTab === "intro"){
+      main.appendChild(renderIntroTab());
+    }else if(state.ui.activeTab === "market"){
+      main.appendChild(renderMarketTab());
+    }else if(state.ui.activeTab === "fit"){
+      main.appendChild(renderFitTab());
+    }else if(state.ui.activeTab === "mvp"){
+      main.appendChild(renderMvpTab());
+    }else if(state.ui.activeTab === "pivot"){
+      main.appendChild(renderPivotTab());
+    }else if(state.ui.activeTab === "wrap"){
+      main.appendChild(renderWrapTab());
+    }else{
+      main.appendChild(renderPlaceholderTab(state.ui.activeTab));
+    }
+  };
+
+  // ---------- Render Wrap tab ----------
+  function renderWrapTab(){
+    ensureWrapState();
+    ensureMvpState();
+    ensurePivotState();
+    ensureFitState();
+
+    const wrap = document.createElement("div");
+
+    const hero = document.createElement("div");
+    hero.className = "panel";
+    hero.innerHTML = `
+      <div class="hero">
+        <div class="hero-badge"></div>
+        <div>
+          <h2>總結/輸出：把課堂成果帶走（也方便交作業）</h2>
+          <p>
+            你現在已經完成：市場規模估算、Fit 判讀、MVP 實驗單、Pivot 決策。
+            這一頁提供：<b>關鍵知識庫（20點）</b>、<b>資源</b>、<b>本地下載/匯入</b>、<b>Google Sheet 上傳預留</b>。
+          </p>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px">
+            <button class="btn primary" id="wrapExportAll">一鍵輸出（JSON＋筆記）</button>
+            <button class="btn" id="wrapAddNote">把總結加入筆記</button>
+            <button class="btn" id="wrapOpenKB">打開關鍵知識庫</button>
+          </div>
+        </div>
+      </div>
+    `;
+    wrap.appendChild(hero);
+
+    const grid = document.createElement("div");
+    grid.className = "wrap-grid";
+
+    // Left: Key knowledge + resources
+    const left = document.createElement("div");
+
+    const kb = document.createElement("div");
+    kb.className = "panel";
+    kb.innerHTML = `
+      <div class="kb-cloud">
+        <div class="section-title">
+          <h3>關鍵知識庫（20 點）</h3>
+          <div class="kicker"><span class="pill">點氣泡 → 翻牌（每點 ≤ 200 字）</span></div>
+        </div>
+
+        <h4>用來做什麼？</h4>
+        <div class="small-muted" style="margin-top:8px; line-height:1.6">
+          這不是背誦題庫，是你在寫實驗單與 Pivot 時的「提醒卡」。
+          建議至少開 10 點，讓你在課後能把實驗寫得更乾淨。
+        </div>
+
+        <div class="kb-bubbles" id="kbBubbles"></div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px">
+          <button class="btn small" id="kbOpenFirst">從第 1 點開始</button>
+          <button class="btn small" id="kbRandom">隨機抽 1 點</button>
+          <button class="btn small" id="kbMark10">快速標記 10 點已讀（示範用）</button>
+        </div>
+      </div>
+    `;
+    left.appendChild(kb);
+
+    const res = document.createElement("div");
+    res.className = "panel";
+    res.innerHTML = `
+      <div class="section-title">
+        <h3>延伸資源（會開新分頁）</h3>
+        <div class="kicker"><span class="pill">課後要補強：PMF / 實驗設計 / Fit 三階段</span></div>
+      </div>
+
+      <div class="res-grid">
+        <div class="res-item">
+          <b>HBS Online：如何找到 PMF</b>
+          <div class="small-muted">用管理語言整理 PMF 的常見訊號與做法。</div>
+          <div class="export-row">
+            <button class="btn small" data-open="https://online.hbs.edu/blog/post/how-to-find-product-market-fit">開啟</button>
+          </div>
+        </div>
+
+        <div class="res-item">
+          <b>實驗導向：通往 PMF 的實驗</b>
+          <div class="small-muted">把「小實驗」當成路徑，避免一次做太大。</div>
+          <div class="export-row">
+            <button class="btn small" data-open="https://bussgang.medium.com/experiments-that-lead-to-product-market-fit-2179d372e5a8">開啟</button>
+          </div>
+        </div>
+
+        <div class="res-item">
+          <b>Slides：Search for PMF</b>
+          <div class="small-muted">用簡報把 Fit 過程拆解（適合快速複習）。</div>
+          <div class="export-row">
+            <button class="btn small" data-open="https://www.slideshare.net/slideshow/the-search-for-productmarket-fit-148919549/148919549">開啟</button>
+          </div>
+        </div>
+
+        <div class="res-item">
+          <b>影片：PMF/驗證思路</b>
+          <div class="small-muted">用口語方式講 PMF 與驗證節奏。</div>
+          <div class="export-row">
+            <button class="btn small" data-open="https://www.youtube.com/watch?v=KULhlVhNP9U&t=143s">開啟</button>
+          </div>
+        </div>
+      </div>
+    `;
+    left.appendChild(res);
+
+    // Right: Export / Import / GoogleSheet stub / Danger zone
+    const right = document.createElement("div");
+
+    const exportCard = document.createElement("div");
+    exportCard.className = "panel";
+    exportCard.innerHTML = `
+      <div class="export-card">
+        <div class="section-title">
+          <h3>本地輸出/匯入</h3>
+          <div class="kicker"><span class="pill">下載到你的電腦（不需登入）</span></div>
+        </div>
+
+        <h4>輸出</h4>
+        <div class="small-muted" style="margin-top:8px; line-height:1.6">
+          建議至少輸出一次 JSON（含所有狀態），再輸出筆記 Markdown（方便貼到 Google Doc/Notion）。
+        </div>
+        <div class="export-row">
+          <button class="btn primary" id="exportState">下載 JSON（全部狀態）</button>
+          <button class="btn" id="exportNotes">下載筆記（Markdown）</button>
+          <button class="btn" id="exportReport">下載課堂摘要（Markdown）</button>
+        </div>
+
+        <div style="margin-top:12px">
+          <h4>匯入</h4>
+          <div class="small-muted" style="margin-top:8px; line-height:1.6">
+            把之前下載的 JSON 匯回來（適合不同電腦或小組交換）。
+          </div>
+          <div class="export-row">
+            <input type="file" id="importFile" accept="application/json" />
+            <button class="btn" id="importState">匯入 JSON</button>
+          </div>
+        </div>
+
+        <div style="margin-top:12px">
+          <h4>快取</h4>
+          <div class="small-muted" style="margin-top:8px; line-height:1.6">
+            本頁會用 localStorage 暫存。若你要重做或借別人用，可清除快取。
+          </div>
+          <div class="export-row">
+            <button class="btn small danger" id="clearCache">清除本機快取（重置）</button>
+          </div>
+        </div>
+      </div>
+    `;
+    right.appendChild(exportCard);
+
+    const gs = document.createElement("div");
+    gs.className = "panel";
+    gs.innerHTML = `
+      <div class="export-card">
+        <div class="section-title">
+          <h3>Google Sheet 上傳（預留）</h3>
+          <div class="kicker"><span class="pill">此區只放按鈕與示範程式碼</span></div>
+        </div>
+
+        <div class="small-muted" style="line-height:1.6">
+          你可以用 Apps Script 建立 Web App endpoint，接收 JSON 後寫入 Sheet。
+          目前先提供按鈕與程式碼骨架（不會真的送出，避免誤傳）。
+        </div>
+
+        <div class="export-row" style="margin-top:10px">
+          <button class="btn" id="gsUploadBtn" disabled title="預留功能：請先填 endpoint">上傳到 Google Sheet（預留）</button>
+          <button class="btn small" id="gsShowCode">顯示/收合示範程式碼</button>
+        </div>
+
+        <div id="gsCodeBox" style="display:none; margin-top:10px" class="mono"></div>
+      </div>
+    `;
+    right.appendChild(gs);
+
+    const danger = document.createElement("div");
+    danger.className = "panel";
+    danger.innerHTML = `
+      <div class="danger-zone">
+        <div style="font-weight:950">提醒：交付前的最後檢查</div>
+        <div class="small-muted" style="margin-top:8px; line-height:1.6">
+          1) Market：TAM/SAM/SOM 都有寫出假設與單位<br/>
+          2) Fit：你能說清楚自己卡在哪一段 Fit<br/>
+          3) MVP：每張實驗卡都有 Metric/Threshold/Stop line<br/>
+          4) Pivot：你能說清楚「保留什麼、改什麼」<br/>
+        </div>
+        <div class="export-row" style="margin-top:10px">
+          <button class="btn small" id="wrapCheckAll">一鍵檢查完成度</button>
+          <button class="btn small" id="wrapGoMarket">回到 Market</button>
+          <button class="btn small" id="wrapGoFit">回到 Fit</button>
+          <button class="btn small" id="wrapGoMvp">回到 MVP</button>
+          <button class="btn small" id="wrapGoPivot">回到 Pivot</button>
+        </div>
+      </div>
+    `;
+    right.appendChild(danger);
+
+    grid.appendChild(left);
+    grid.appendChild(right);
+    wrap.appendChild(grid);
+
+    // KB modal (mounted once)
+    wrap.appendChild(renderKbModal());
+
+    setTimeout(()=>{
+      renderKbBubbles();
+      bindWrapEvents();
+      autoUpdateProgress();
+      renderProgress();
+    },0);
+
+    return wrap;
+  }
+
+  // ---------- KB modal render ----------
+  function renderKbModal(){
+    const modal = document.createElement("div");
+    modal.className = "kb-modal";
+    modal.id = "kbModal";
+    modal.innerHTML = `
+      <div class="inner">
+        <div class="top">
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap">
+            <b id="kbTitle">關鍵知識</b>
+            <span class="pill" id="kbTag">—</span>
+            <span class="pill" id="kbIndex">—</span>
+          </div>
+          <div class="nav">
+            <button class="btn small" id="kbPrev">上一點</button>
+            <button class="btn small" id="kbFlip">翻面</button>
+            <button class="btn small" id="kbNext">下一點</button>
+            <button class="btn small danger" id="kbClose">關閉</button>
+          </div>
+        </div>
+
+        <div class="flip">
+          <div class="flip-card" id="kbFlipCard">
+            <div class="flip-face flip-front">
+              <div class="tagrow">
+                <span class="pill">正面：一句話抓重點</span>
+                <span class="pill">提示：按「翻面」看解釋</span>
+              </div>
+              <div class="title" id="kbFrontTitle">—</div>
+              <div class="hint" id="kbFrontHint">—</div>
+            </div>
+            <div class="flip-face flip-back">
+              <div class="tagrow">
+                <span class="pill">背面：≤ 200 字解釋</span>
+                <span class="pill">目標：能直接拿去寫實驗/決策</span>
+              </div>
+              <div class="body" id="kbBackBody">—</div>
+              <div class="small-muted" style="margin-top:auto">
+                建議用法：把這點改寫成「可被驗證的句子」，再回到 MVP 實驗單。
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:center">
+          <button class="btn" id="kbAddNote">把這點加入筆記</button>
+          <span class="small-muted" id="kbSeenTip">—</span>
+        </div>
+      </div>
+    `;
+    return modal;
+  }
+
+  // ---------- KB logic ----------
+  function renderKbBubbles(){
+    ensureWrapState();
+    const el = $("#kbBubbles");
+    if(!el) return;
+    el.innerHTML = "";
+
+    const seen = state.wrap.kbSeen || {};
+    KEYPOINTS.forEach((k, idx)=>{
+      const b = document.createElement("div");
+      b.className = "kb-bubble";
+      const mark = seen[k.id] ? "✓ " : "";
+      b.textContent = mark + k.title;
+      b.title = `${k.tag}｜點開翻牌`;
+      b.onclick = ()=> openKb(idx);
+      el.appendChild(b);
+    });
+  }
+
+  function openKb(index){
+    ensureWrapState();
+    state.wrap.kbActiveIndex = clamp(index, 0, KEYPOINTS.length-1);
+    scheduleSave();
+
+    const modal = $("#kbModal");
+    if(!modal) return;
+    modal.classList.add("open");
+
+    // reset flip to front
+    $("#kbFlipCard")?.classList.remove("is-flipped");
+
+    renderKbActive();
+    bindKbModalEvents();
+  }
+
+  function closeKb(){
+    const modal = $("#kbModal");
+    if(modal) modal.classList.remove("open");
+  }
+
+  function renderKbActive(){
+    ensureWrapState();
+    const idx = state.wrap.kbActiveIndex ?? 0;
+    const k = KEYPOINTS[idx];
+    if(!k) return;
+
+    // mark seen
+    state.wrap.kbSeen[k.id] = true;
+    scheduleSave();
+    renderKbBubbles();
+
+    $("#kbTitle").textContent = "關鍵知識";
+    $("#kbTag").textContent = k.tag;
+    $("#kbIndex").textContent = `${idx+1} / ${KEYPOINTS.length}`;
+    $("#kbFrontTitle").textContent = k.title;
+    $("#kbFrontHint").textContent = "把這句話放在你寫實驗或 Pivot 的第一行，提醒自己：先有可判讀訊號，再做更多事。";
+    $("#kbBackBody").textContent = k.body;
+
+    const seenCount = Object.keys(state.wrap.kbSeen||{}).length;
+    $("#kbSeenTip").textContent = `已讀 ${seenCount} / 20（建議至少 10）`;
+
+    autoUpdateProgress();
+    renderProgress();
+  }
+
+  function bindKbModalEvents(){
+    // bind once per open (safe)
+    $("#kbClose").onclick = closeKb;
+    $("#kbModal").onclick = (e)=>{
+      if(e.target && e.target.id === "kbModal") closeKb();
+    };
+
+    $("#kbFlip").onclick = ()=> $("#kbFlipCard")?.classList.toggle("is-flipped");
+    $("#kbPrev").onclick = ()=> { state.wrap.kbActiveIndex = clamp((state.wrap.kbActiveIndex??0)-1, 0, KEYPOINTS.length-1); scheduleSave(); $("#kbFlipCard")?.classList.remove("is-flipped"); renderKbActive(); };
+    $("#kbNext").onclick = ()=> { state.wrap.kbActiveIndex = clamp((state.wrap.kbActiveIndex??0)+1, 0, KEYPOINTS.length-1); scheduleSave(); $("#kbFlipCard")?.classList.remove("is-flipped"); renderKbActive(); };
+
+    $("#kbAddNote").onclick = ()=>{
+      const idx = state.wrap.kbActiveIndex ?? 0;
+      const k = KEYPOINTS[idx];
+      if(!k) return;
+      addNote({
+        title:`關鍵知識｜${k.title}`,
+        content:`【${k.tag}】\n${k.body}`,
+        tags:["關鍵知識","課堂"]
+      });
+      toast("已加入筆記。","ok");
+    };
+
+    // Esc close
+    document.onkeydown = (ev)=>{
+      if(ev.key === "Escape"){
+        const modal = $("#kbModal");
+        if(modal && modal.classList.contains("open")) closeKb();
+      }
+    };
+  }
+
+  // ---------- Export / Import ----------
+  function downloadText(filename, text, mime="text/plain"){
+    const blob = new Blob([text], {type:mime});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=> URL.revokeObjectURL(url), 500);
+  }
+
+  function exportStateJSON(){
+    const safe = structuredClone(state);
+    // remove transient UI (optional)
+    if(safe.ui) {
+      // keep activeTab ok, but remove volatile
+    }
+    const text = JSON.stringify(safe, null, 2);
+    downloadText(`MVP_Workshop_State_${stamp()}.json`, text, "application/json");
+    ensureWrapState();
+    state.wrap.exportedOnce = true;
+    scheduleSave();
+    autoUpdateProgress(); renderProgress();
+  }
+
+  function exportNotesMarkdown(){
+    const notes = (state.notes || []);
+    const lines = [];
+    lines.push(`# 課堂筆記（匯出）`);
+    lines.push(`- 匯出時間：${new Date().toLocaleString("zh-Hant")}`);
+    lines.push(`- 筆記數：${notes.length}`);
+    lines.push("");
+
+    notes.forEach((n,i)=>{
+      lines.push(`## ${i+1}. ${n.title || "（無標題）"}`);
+      if(n.createdAt) lines.push(`- 建立：${new Date(n.createdAt).toLocaleString("zh-Hant")}`);
+      if(n.tags && n.tags.length) lines.push(`- 標籤：${n.tags.join(", ")}`);
+      lines.push("");
+      lines.push((n.content || "").trim());
+      lines.push("");
+      lines.push("---");
+      lines.push("");
+    });
+
+    downloadText(`MVP_Workshop_Notes_${stamp()}.md`, lines.join("\n"), "text/markdown");
+    ensureWrapState();
+    state.wrap.exportedOnce = true;
+    scheduleSave();
+    autoUpdateProgress(); renderProgress();
+  }
+
+  function exportClassReportMarkdown(){
+    // Gather: Market summary (if available), Fit diagnosis, MVP sheet, Pivot summary
+    const lines = [];
+    lines.push(`# 課堂摘要（Market → Fit → MVP → Pivot）`);
+    lines.push(`- 匯出時間：${new Date().toLocaleString("zh-Hant")}`);
+    lines.push("");
+
+    // Market (best-effort: detect if state.market exists)
+    lines.push(`## 1) 市場規模（TAM/SAM/SOM）`);
+    if(state.market){
+      lines.push("（以下為系統狀態匯總，若你有自訂欄位，請以頁面顯示為準）");
+      lines.push("```json");
+      lines.push(JSON.stringify(state.market, null, 2));
+      lines.push("```");
+    }else{
+      lines.push("（未偵測到 market 狀態結構，請回 Market 頁確認已填內容。）");
+    }
+    lines.push("");
+
+    // Fit
+    ensureFitState();
+    lines.push(`## 2) Fit 判讀`);
+    lines.push(`- 主要階段：${state.fit.diagnosis.stagePrimary || "—"}`);
+    lines.push(`- 次要階段：${state.fit.diagnosis.stageSecondary || "—"}`);
+    lines.push(`- 信心：${state.fit.diagnosis.confidence || 0}%`);
+    lines.push("");
+    lines.push(`理由：`);
+    lines.push((state.fit.diagnosis.rationaleText || "—").trim());
+    lines.push("");
+
+    // MVP
+    ensureMvpState();
+    lines.push(`## 3) MVP 實驗單`);
+    lines.push("```text");
+    lines.push(buildMvpSheetText());
+    lines.push("```");
+    lines.push("");
+
+    // Pivot
+    ensurePivotState();
+    lines.push(`## 4) Pivot 摘要`);
+    lines.push("```text");
+    lines.push(buildPivotSummaryText());
+    lines.push("```");
+    lines.push("");
+
+    downloadText(`MVP_Workshop_Report_${stamp()}.md`, lines.join("\n"), "text/markdown");
+    ensureWrapState();
+    state.wrap.exportedOnce = true;
+    scheduleSave();
+    autoUpdateProgress(); renderProgress();
+  }
+
+  async function importStateJSON(file){
+    if(!file) throw new Error("no file");
+    const text = await file.text();
+    const obj = JSON.parse(text);
+
+    // Minimal validation
+    if(typeof obj !== "object" || !obj) throw new Error("invalid json");
+    if(!obj.ui) obj.ui = state.ui || { activeTab:"intro" };
+
+    // apply
+    state = obj;
+
+    // ensure new structures exist
+    ensureFitState();
+    ensureMvpState();
+    ensurePivotState();
+    ensureWrapState();
+
+    // persist
+    saveNow();
+    toast("已匯入 JSON，並載入畫面。","ok");
+    autoUpdateProgress();
+    renderShell?.(); // if exists in Part1
+    renderMain();
+    renderProgress();
+  }
+
+  function clearCacheAll(){
+    if(!confirm("確定清除本機快取並重置？此動作不可復原。")) return;
+    try{
+      localStorage.removeItem(STORAGE_KEY);
+    }catch(e){}
+    location.reload();
+  }
+
+  // ---------- Google Sheet placeholder code ----------
+  function buildGsCodeSnippet(){
+    // Frontend: fetch to Apps Script endpoint
+    const snippet = [
+`// 1) 前端：把狀態送到 Apps Script Web App（示範）`,
+`// 設定你的 Apps Script Web App URL（部署後取得）`,
+`const GS_ENDPOINT = "https://script.google.com/macros/s/XXXX/exec";`,
+``,
+`async function uploadToGoogleSheet(payload){`,
+`  // payload 建議包含：groupId / studentName / state / timestamp 等`,
+`  const res = await fetch(GS_ENDPOINT, {`,
+`    method: "POST",`,
+`    headers: { "Content-Type": "application/json" },`,
+`    body: JSON.stringify(payload),`,
+`  });`,
+`  if(!res.ok) throw new Error("Upload failed");`,
+`  return await res.json();`,
+`}`,
+``,
+`// 2) Apps Script（Code.gs）：接收 JSON 並寫入 Sheet（示範）`,
+`function doPost(e){`,
+`  const ss = SpreadsheetApp.openById("YOUR_SHEET_ID");`,
+`  const sh = ss.getSheetByName("submissions") || ss.insertSheet("submissions");`,
+`  const data = JSON.parse(e.postData.contents);`,
+`  // 你可以改成把關鍵欄位拆開存，或整包 JSON 存一欄`,
+`  sh.appendRow([new Date(), data.groupId || "", data.studentName || "", JSON.stringify(data)]);`,
+`  return ContentService`,
+`    .createTextOutput(JSON.stringify({ok:true}))`,
+`    .setMimeType(ContentService.MimeType.JSON);`,
+`}`,
+``,
+`// 部署：Apps Script → 部署 → 新增部署 → 網頁應用程式`,
+`// 存取權限與執行身分請依課堂需求設定。`,
+    ].join("\n");
+    return snippet;
+  }
+
+  // ---------- Bind Wrap events ----------
+  function bindWrapEvents(){
+    // KB
+    $("#wrapOpenKB").onclick = ()=> openKb(0);
+    $("#kbOpenFirst").onclick = ()=> openKb(0);
+    $("#kbRandom").onclick = ()=>{
+      const idx = Math.floor(Math.random()*KEYPOINTS.length);
+      openKb(idx);
+    };
+    $("#kbMark10").onclick = ()=>{
+      // demo shortcut
+      for(let i=0;i<10;i++){
+        state.wrap.kbSeen[KEYPOINTS[i].id] = true;
+      }
+      scheduleSave();
+      renderKbBubbles();
+      autoUpdateProgress(); renderProgress();
+      toast("已示範標記 10 點已讀（可用於展示）。","ok");
+    };
+
+    // Resources open
+    $$("button[data-open]").forEach(btn=>{
+      btn.onclick = ()=>{
+        const url = btn.getAttribute("data-open");
+        window.open(url, "_blank", "noopener,noreferrer");
+      };
+    });
+
+    // Export buttons
+    $("#exportState").onclick = exportStateJSON;
+    $("#exportNotes").onclick = exportNotesMarkdown;
+    $("#exportReport").onclick = exportClassReportMarkdown;
+
+    $("#wrapExportAll").onclick = ()=>{
+      exportStateJSON();
+      exportNotesMarkdown();
+      toast("已觸發一鍵輸出（JSON＋筆記）。","ok");
+    };
+
+    $("#wrapAddNote").onclick = ()=>{
+      const content = exportClassReportTextForNote();
+      addNote({ title:"總結｜Market→Fit→MVP→Pivot", content, tags:["總結","課堂"] });
+      toast("已把總結加入筆記。","ok");
+    };
+
+    // Import
+    $("#importState").onclick = async ()=>{
+      const f = $("#importFile").files?.[0];
+      if(!f){ toast("請先選擇 JSON 檔。","warn"); return; }
+      try{
+        ensureWrapState();
+        state.wrap.importedOnce = true;
+        await importStateJSON(f);
+      }catch(err){
+        toast("匯入失敗：JSON 格式或檔案內容不正確。","bad");
+      }
+    };
+
+    // Clear
+    $("#clearCache").onclick = clearCacheAll;
+
+    // Google sheet placeholder
+    $("#gsShowCode").onclick = ()=>{
+      const box = $("#gsCodeBox");
+      if(!box) return;
+      const open = box.style.display !== "none";
+      if(open){
+        box.style.display = "none";
+        return;
+      }
+      box.textContent = buildGsCodeSnippet();
+      box.style.display = "block";
+    };
+
+    // Checks & navigation
+    $("#wrapCheckAll").onclick = ()=>{
+      const miss = [];
+
+      // Market (best-effort)
+      if(!state.market){
+        miss.push("Market：未偵測到狀態（請回 Market 頁確認已填）");
+      }
+
+      const fitC = computeFitCompletion();
+      if(!fitC.pass){
+        miss.push("Fit：需完成配對與情境題，並填入判讀");
+      }
+
+      const mvpC = computeMvpCompletion();
+      if(!mvpC.pass){
+        miss.push("MVP：Top3 / 訊號分類 / 實驗卡至少 2 張");
+      }
+
+      const pvC = computePivotCompletion();
+      if(!pvC.pass){
+        miss.push("Pivot：紅黃綠＋Pivot 類型＋新假設＋紀錄");
+      }
+
+      const wC = computeWrapCompletion();
+      if(wC.seenCount < 10) miss.push("關鍵知識：建議至少開 10 點");
+      if(!wC.exported) miss.push("輸出：至少下載一次 JSON 或筆記");
+
+      if(!miss.length) toast("整體完成度良好：可輸出並交付。","ok");
+      else toast("尚需補：\n- " + miss.join("\n- "), "warn");
+
+      autoUpdateProgress(); renderProgress();
+    };
+
+    $("#wrapGoMarket").onclick = ()=> navigate("market");
+    $("#wrapGoFit").onclick = ()=> navigate("fit");
+    $("#wrapGoMvp").onclick = ()=> navigate("mvp");
+    $("#wrapGoPivot").onclick = ()=> navigate("pivot");
+  }
+
+  function exportClassReportTextForNote(){
+    const lines = [];
+    lines.push("【課堂總結｜Market → Fit → MVP → Pivot】");
+    lines.push(`建立：${new Date().toLocaleString("zh-Hant")}`);
+    lines.push("");
+
+    // Fit
+    ensureFitState();
+    lines.push("【Fit 判讀】");
+    lines.push(`主要：${state.fit.diagnosis.stagePrimary || "—"}`);
+    lines.push(`次要：${state.fit.diagnosis.stageSecondary || "—"}`);
+    lines.push(`信心：${state.fit.diagnosis.confidence || 0}%`);
+    lines.push("");
+    lines.push((state.fit.diagnosis.rationaleText || "—").trim());
+    lines.push("");
+
+    // MVP sheet
+    ensureMvpState();
+    lines.push(buildMvpSheetText());
+    lines.push("");
+
+    // Pivot
+    ensurePivotState();
+    lines.push(buildPivotSummaryText());
+    lines.push("");
+
+    return lines.join("\n");
+  }
+
+  // ---------- Helper: clamp if not defined ----------
+  if(typeof clamp !== "function"){
+    function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+  }
+
+  // ---------- Final: refresh once ----------
+  ensureWrapState();
+  autoUpdateProgress();
+  renderProgress();
+</script>
